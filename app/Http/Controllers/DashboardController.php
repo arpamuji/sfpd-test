@@ -14,6 +14,11 @@ class DashboardController extends Controller
         private ApprovalWorkflowService $approvalService
     ) {}
 
+    /**
+     * Display the dashboard with user's submissions and pending approvals.
+     *
+     * @return \Inertia\Response
+     */
     public function index()
     {
         $user = Auth::user();
