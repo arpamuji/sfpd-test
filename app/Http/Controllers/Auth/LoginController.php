@@ -10,11 +10,23 @@ use Inertia\Inertia;
 
 class LoginController extends Controller
 {
+    /**
+     * Show the login form.
+     *
+     * @return \Inertia\Response
+     */
     public function showLoginForm()
     {
         return Inertia::render('Auth/Login');
     }
 
+    /**
+     * Handle login attempt.
+     * Redirects to 2FA verification if user has 2FA enabled.
+     *
+     * @param LoginRequest $request
+     * @return RedirectResponse
+     */
     public function login(LoginRequest $request): RedirectResponse
     {
         $credentials = $request->only('email', 'password');
@@ -33,6 +45,11 @@ class LoginController extends Controller
         return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
     }
 
+    /**
+     * Log the user out and invalidate session.
+     *
+     * @return RedirectResponse
+     */
     public function logout(): RedirectResponse
     {
         Auth::logout();

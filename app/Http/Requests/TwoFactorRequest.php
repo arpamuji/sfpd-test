@@ -6,6 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class TwoFactorRequest extends FormRequest
 {
+    private const CODE_LENGTH = 6;
+
     public function authorize(): bool
     {
         return true;
@@ -14,7 +16,7 @@ class TwoFactorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'size:6'],
+            'code' => ['required', 'string', 'size:' . self::CODE_LENGTH],
         ];
     }
 }
