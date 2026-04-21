@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -59,13 +61,11 @@ class User extends Authenticatable
         return $this->hasMany(ApprovalLog::class, 'approver_id');
     }
 
-    public function get2faSecretAttribute(?string $value): ?string
+    protected function twoFaSecret(): Attribute
     {
-        return $value ? decrypt($value) : null;
-    }
-
-    public function set2faSecretAttribute(?string $value): void
-    {
-        $this->attributes['google2fa_secret'] = $value ? encrypt($value) : null;
+        return Attribute::make(
+            get: fn ($value) => $value ? decrypt($value) : null,
+            set: fn ($value) => $value ? encrypt($value) : null,
+        );
     }
 }

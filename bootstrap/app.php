@@ -4,6 +4,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+use App\Http\Middleware\Ensure2FAEnabled;
+use App\Http\Middleware\RoleCheck;
+
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: [
@@ -15,8 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            '2fa' => \App\Http\Middleware\Ensure2FAEnabled::class,
-            'role' => \App\Http\Middleware\RoleCheck::class,
+            '2fa' => Ensure2FAEnabled::class,
+            'role' => RoleCheck::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
