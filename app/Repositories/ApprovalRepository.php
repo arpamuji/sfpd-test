@@ -7,12 +7,27 @@ use App\Models\Role;
 use App\Models\Submission;
 use App\Models\User;
 use App\Repositories\Contracts\ApprovalRepositoryInterface;
+use Illuminate\Support\Collection;
 
 class ApprovalRepository implements ApprovalRepositoryInterface
 {
+    private const REQUESTOR_ROLE = 'Requestor';
+
+    /**
+     * Approve a submission and advance to next role or mark as approved.
+     *
+     * @param Submission $submission
+     * @param User $approver
+     * @param string|null $notes Optional approval notes
+     * @return Submission The updated submission
+     */
     public function approve(Submission $submission, User $approver, ?string $notes): Submission
     {
-        // Log the approval
+        // Cannot approve rejected or already approved submissions
+        if ($submission->isRejected() || $submission->isApproved()) {
+            throw new \InvalidArgumentException('Cannot approve a submission that is already rejected or approved.');
+        }
+
         ApprovalLog::create([
             'submission_id' => $submission->id,
             'approver_id' => $approver->id,
@@ -20,12 +35,10 @@ class ApprovalRepository implements ApprovalRepositoryInterface
             'notes' => $notes,
         ]);
 
-        // Move to next role
         $currentRole = $submission->currentRole;
         $nextRole = $currentRole->nextRole;
 
         if ($nextRole === null) {
-            // Final approval
             $submission->update([
                 'status' => 'approved',
                 'approved_at' => now(),
@@ -40,9 +53,16 @@ class ApprovalRepository implements ApprovalRepositoryInterface
         return $submission->fresh();
     }
 
+    /**
+     * Reject a submission. Submission stays rejected - requestor must create new submission.
+     *
+     * @param Submission $submission
+     * @param User $approver
+     * @param string $notes Rejection reason (required)
+     * @return Submission The updated submission (status: rejected)
+     */
     public function reject(Submission $submission, User $approver, string $notes): Submission
     {
-        // Log the rejection
         ApprovalLog::create([
             'submission_id' => $submission->id,
             'approver_id' => $approver->id,
@@ -50,13 +70,8 @@ class ApprovalRepository implements ApprovalRepositoryInterface
             'notes' => $notes,
         ]);
 
-        // Get first approver role (SPV Gudang)
-        $firstApproverRole = Role::where('name', 'SPV Gudang')->first();
-
-        // Reset to draft
         $submission->update([
-            'status' => 'draft',
-            'current_role_id' => $firstApproverRole->id,
+            'status' => 'rejected',
             'rejected_by' => $approver->id,
             'rejection_reason' => $notes,
         ]);
@@ -64,6 +79,12 @@ class ApprovalRepository implements ApprovalRepositoryInterface
         return $submission->fresh();
     }
 
+    /**
+     * Get approval history for a submission.
+     *
+     * @param Submission $submission
+     * @return Collection<int, ApprovalLog>
+     */
     public function getApprovalHistory(Submission $submission)
     {
         return $submission->approvalLogs()
@@ -72,6 +93,12 @@ class ApprovalRepository implements ApprovalRepositoryInterface
             ->get();
     }
 
+    /**
+     * Get status string for a role.
+     *
+     * @param Role $role
+     * @return string Status name
+     */
     private function getStatusForRole(Role $role): string
     {
         return match ($role->name) {
