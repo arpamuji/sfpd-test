@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Approvals;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ApproveSubmissionRequest;
+use App\Models\Submission;
 use App\Models\User;
 use App\Services\ApprovalWorkflowService;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +15,11 @@ class ApprovalController extends Controller
 {
     public function __construct(private ApprovalWorkflowService $approvalService) {}
 
+    /**
+     * Display pending approvals for the current user.
+     *
+     * @return \Inertia\Response
+     */
     public function pending()
     {
         $user = Auth::user();
@@ -24,18 +30,25 @@ class ApprovalController extends Controller
         ]);
     }
 
-    public function approve(ApproveSubmissionRequest $request, string $id): RedirectResponse
+    /**
+     * Approve a submission.
+     *
+     * @param ApproveSubmissionRequest $request
+     * @param Submission $submission
+     * @return RedirectResponse
+     */
+    public function approve(ApproveSubmissionRequest $request, Submission $submission): RedirectResponse
     {
-        $submission = $this->approvalService->getSubmission($id);
+        $user = Auth::user();
 
-        if (!$submission) {
-            abort(404);
+        if (!$this->approvalService->canApprove($submission, $user)) {
+            abort(403, 'You cannot approve this submission at this level.');
         }
 
         try {
             $this->approvalService->approveSubmission(
                 $submission,
-                Auth::user(),
+                $user,
                 $request->input('notes')
             );
 
@@ -45,18 +58,25 @@ class ApprovalController extends Controller
         }
     }
 
-    public function reject(ApproveSubmissionRequest $request, string $id): RedirectResponse
+    /**
+     * Reject a submission.
+     *
+     * @param ApproveSubmissionRequest $request
+     * @param Submission $submission
+     * @return RedirectResponse
+     */
+    public function reject(ApproveSubmissionRequest $request, Submission $submission): RedirectResponse
     {
-        $submission = $this->approvalService->getSubmission($id);
+        $user = Auth::user();
 
-        if (!$submission) {
-            abort(404);
+        if (!$this->approvalService->canApprove($submission, $user)) {
+            abort(403, 'You cannot reject this submission at this level.');
         }
 
         try {
             $this->approvalService->rejectSubmission(
                 $submission,
-                Auth::user(),
+                $user,
                 $request->input('notes')
             );
 

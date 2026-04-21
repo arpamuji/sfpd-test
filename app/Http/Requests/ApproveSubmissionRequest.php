@@ -14,7 +14,20 @@ class ApproveSubmissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'notes' => ['nullable', 'string', 'max:500'],
+            'action' => ['required', 'string', 'in:approve,reject'],
+            'notes' => [
+                'required_if:action,reject',
+                'nullable',
+                'string',
+                'max:500',
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'notes.required_if' => 'A rejection reason is required.',
         ];
     }
 }
