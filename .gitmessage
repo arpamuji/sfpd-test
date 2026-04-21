@@ -1,0 +1,8 @@
+# <type>(<scope>): <subject>
+# |<----  Using a Maximum Of 72 Characters  ---->|
+#
+# Type: feat, fix, docs, style, refactor, test, chore, init
+# Scope: auth, submissions, approvals, users, db, ui, config, tests, project
+#
+# Example: feat(auth): add 2FA verification endpoint
+#
