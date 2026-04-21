@@ -6,6 +6,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UsersSeeder extends Seeder
 {
@@ -34,6 +35,7 @@ class UsersSeeder extends Seeder
 
         foreach ($users as $userData) {
             User::create([
+                'id' => Str::uuid()->toString(),
                 'email' => $userData['email'],
                 'password' => $password,
                 'role_id' => $roles[$userData['role']]->id,
