@@ -10,10 +10,12 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('name', 50);
+            $table->string('name', 50)->unique();
             $table->uuid('next_role_id')->nullable();
             $table->timestamps();
+        });
 
+        Schema::table('roles', function (Blueprint $table) {
             $table->foreign('next_role_id')
                 ->references('id')
                 ->on('roles')
