@@ -7,13 +7,14 @@ use App\Http\Requests\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class LoginController extends Controller
 {
     /**
      * Show the login form.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function showLoginForm()
     {
@@ -23,9 +24,6 @@ class LoginController extends Controller
     /**
      * Handle login attempt.
      * Redirects to 2FA verification if user has 2FA enabled.
-     *
-     * @param LoginRequest $request
-     * @return RedirectResponse
      */
     public function login(LoginRequest $request): RedirectResponse
     {
@@ -47,8 +45,6 @@ class LoginController extends Controller
 
     /**
      * Log the user out and invalidate session.
-     *
-     * @return RedirectResponse
      */
     public function logout(): RedirectResponse
     {

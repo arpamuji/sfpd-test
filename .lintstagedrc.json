@@ -1,0 +1,8 @@
+{
+    "*.php": ["vendor/bin/pint --test", "vendor/bin/pint"],
+    "resources/js/**/*.{ts,tsx}": [
+        "bun run lint --fix",
+        "bunx prettier --write"
+    ],
+    "*.{css,json,md}": ["bunx prettier --write"]
+}

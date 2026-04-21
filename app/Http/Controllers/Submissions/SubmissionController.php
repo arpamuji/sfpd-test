@@ -9,6 +9,7 @@ use App\Services\SubmissionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class SubmissionController extends Controller
 {
@@ -17,7 +18,7 @@ class SubmissionController extends Controller
     /**
      * Display list of submissions for the current user.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function index()
     {
@@ -33,7 +34,7 @@ class SubmissionController extends Controller
     /**
      * Show form to create a new submission.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function create()
     {
@@ -43,9 +44,6 @@ class SubmissionController extends Controller
     /**
      * Store a new submission with file uploads.
      * Automatically submits for approval after creation.
-     *
-     * @param StoreSubmissionRequest $request
-     * @return RedirectResponse
      */
     public function store(StoreSubmissionRequest $request): RedirectResponse
     {
@@ -68,8 +66,7 @@ class SubmissionController extends Controller
     /**
      * Display the specified submission.
      *
-     * @param Submission $submission
-     * @return \Inertia\Response
+     * @return Response
      */
     public function show(Submission $submission)
     {
