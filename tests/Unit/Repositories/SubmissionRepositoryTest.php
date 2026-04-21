@@ -23,9 +23,9 @@ class SubmissionRepositoryTest extends TestCase
 
     public function test_find_returns_submission_with_relationships(): void
     {
-        $requestorRole = \App\Models\Role::create(['name' => 'Requestor']);
+        $requestorRole = Role::create(['name' => 'Requestor']);
         $requestor = User::factory()->withRole($requestorRole->id)->create();
-        $currentRole = \App\Models\Role::create(['name' => 'SPV Gudang']);
+        $currentRole = Role::create(['name' => 'SPV Gudang']);
 
         $submission = Submission::factory()->create([
             'requestor_id' => $requestor->id,
@@ -41,11 +41,11 @@ class SubmissionRepositoryTest extends TestCase
 
     public function test_find_by_requestor_filters_by_user(): void
     {
-        $requestorRole = \App\Models\Role::create(['name' => 'Requestor']);
+        $requestorRole = Role::create(['name' => 'Requestor']);
         $user1 = User::factory()->withRole($requestorRole->id)->create();
         $user2 = User::factory()->withRole($requestorRole->id)->create();
 
-        $currentRole = \App\Models\Role::create(['name' => 'SPV Gudang']);
+        $currentRole = Role::create(['name' => 'SPV Gudang']);
 
         Submission::factory()->count(3)->create([
             'requestor_id' => $user1->id,
