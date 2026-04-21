@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\SubmissionService;
 use App\Services\ApprovalWorkflowService;
+use App\Services\SubmissionService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class DashboardController extends Controller
 {
@@ -17,7 +18,7 @@ class DashboardController extends Controller
     /**
      * Display the dashboard with user's submissions and pending approvals.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function index()
     {

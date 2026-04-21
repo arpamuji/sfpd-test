@@ -8,6 +8,7 @@ use App\Services\TwoFactorAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class TwoFactorController extends Controller
 {
@@ -17,7 +18,7 @@ class TwoFactorController extends Controller
      * Show 2FA setup page with QR code.
      * Redirects to dashboard if user already has 2FA enabled.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function showSetup()
     {
@@ -40,15 +41,12 @@ class TwoFactorController extends Controller
 
     /**
      * Enable 2FA for the authenticated user.
-     *
-     * @param TwoFactorRequest $request
-     * @return RedirectResponse
      */
     public function enable2fa(TwoFactorRequest $request): RedirectResponse
     {
         $secret = session('2fa_secret');
 
-        if (!$secret || !$this->twoFactorService->verifyCode($secret, $request->input('code'))) {
+        if (! $secret || ! $this->twoFactorService->verifyCode($secret, $request->input('code'))) {
             return back()->withErrors(['code' => 'Invalid authentication code.']);
         }
 
@@ -63,7 +61,7 @@ class TwoFactorController extends Controller
     /**
      * Show 2FA verification page for login.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function showVerification()
     {
@@ -72,9 +70,6 @@ class TwoFactorController extends Controller
 
     /**
      * Verify 2FA code during login.
-     *
-     * @param TwoFactorRequest $request
-     * @return RedirectResponse
      */
     public function verify(TwoFactorRequest $request): RedirectResponse
     {

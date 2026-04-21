@@ -10,11 +10,11 @@ class Ensure2FAEnabled
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('login');
         }
 
-        if (!auth()->user()->google2fa_enabled) {
+        if (! auth()->user()->google2fa_enabled) {
             return redirect()->route('2fa.setup');
         }
 

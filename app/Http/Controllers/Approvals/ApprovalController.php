@@ -10,6 +10,7 @@ use App\Services\ApprovalWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ApprovalController extends Controller
 {
@@ -18,7 +19,7 @@ class ApprovalController extends Controller
     /**
      * Display pending approvals for the current user.
      *
-     * @return \Inertia\Response
+     * @return Response
      */
     public function pending()
     {
@@ -32,16 +33,12 @@ class ApprovalController extends Controller
 
     /**
      * Approve a submission.
-     *
-     * @param ApproveSubmissionRequest $request
-     * @param Submission $submission
-     * @return RedirectResponse
      */
     public function approve(ApproveSubmissionRequest $request, Submission $submission): RedirectResponse
     {
         $user = Auth::user();
 
-        if (!$this->approvalService->canApprove($submission, $user)) {
+        if (! $this->approvalService->canApprove($submission, $user)) {
             abort(403, 'You cannot approve this submission at this level.');
         }
 
@@ -60,16 +57,12 @@ class ApprovalController extends Controller
 
     /**
      * Reject a submission.
-     *
-     * @param ApproveSubmissionRequest $request
-     * @param Submission $submission
-     * @return RedirectResponse
      */
     public function reject(ApproveSubmissionRequest $request, Submission $submission): RedirectResponse
     {
         $user = Auth::user();
 
-        if (!$this->approvalService->canApprove($submission, $user)) {
+        if (! $this->approvalService->canApprove($submission, $user)) {
             abort(403, 'You cannot reject this submission at this level.');
         }
 

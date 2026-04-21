@@ -16,7 +16,7 @@ class TwoFactorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'size:' . self::CODE_LENGTH],
+            'code' => ['required', 'string', 'size:'.self::CODE_LENGTH],
         ];
     }
 }
