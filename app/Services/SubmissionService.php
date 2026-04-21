@@ -19,6 +19,7 @@ class SubmissionService
         return DB::transaction(function () use ($data, $requestor) {
             $submission = $this->submissionRepository->create([
                 'requestor_id' => $requestor->id,
+                'current_role_id' => $requestor->role_id,
                 'warehouse_name' => $data['warehouse_name'],
                 'warehouse_address' => $data['warehouse_address'],
                 'latitude' => $data['latitude'],

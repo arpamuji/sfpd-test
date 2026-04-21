@@ -10,7 +10,7 @@ use BaconQrCode\Writer;
 
 class TwoFactorAuthService
 {
-    private Google2FA $google2fa;
+    public Google2FA $google2fa;
 
     public function __construct()
     {

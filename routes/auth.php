@@ -10,6 +10,7 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('2fa/setup', [TwoFactorController::class, 'showSetup'])->name('2fa.setup');
     Route::get('2fa/verify', [TwoFactorController::class, 'showVerification'])->name('2fa.verify');
     Route::post('2fa/verify', [TwoFactorController::class, 'verify']);
     Route::post('logout', [LoginController::class, 'logout'])->name('logout');

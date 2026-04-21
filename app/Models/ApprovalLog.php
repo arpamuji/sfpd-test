@@ -2,13 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class ApprovalLog extends Model
 {
+    use HasFactory;
+
     public $incrementing = false;
     public $keyType = 'string';
+
+    protected static function booted(): void
+    {
+        static::creating(function (ApprovalLog $model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
+    }
 
     protected $fillable = [
         'submission_id',

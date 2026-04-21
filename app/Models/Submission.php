@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Submission extends Model
 {
@@ -14,7 +15,17 @@ class Submission extends Model
     public $incrementing = false;
     public $keyType = 'string';
 
+    protected static function booted(): void
+    {
+        static::creating(function (Submission $model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
+    }
+
     protected $fillable = [
+        'id',
         'requestor_id',
         'current_role_id',
         'status',

@@ -20,6 +20,8 @@ class StoreSubmissionRequest extends FormRequest
             'longitude' => ['required', 'numeric', 'between:-180,180'],
             'budget_estimate' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'files' => ['required', 'array', 'min:3'],
+            'files.*' => ['required', 'file', 'max:10240'],
         ];
     }
 }

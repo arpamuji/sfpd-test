@@ -25,11 +25,31 @@ class ApprovalWorkflowService
         return $this->approvalRepository->reject($submission, $approver, $notes);
     }
 
-    public function getPendingForRole(string $roleId): array
+    public function approveSubmission(Submission $submission, User $approver, ?string $notes): Submission
+    {
+        return $this->approve($submission, $approver, $notes);
+    }
+
+    public function rejectSubmission(Submission $submission, User $approver, ?string $notes): Submission
+    {
+        return $this->reject($submission, $approver, $notes ?? 'Rejected');
+    }
+
+    public function getPendingApprovals(User $user): \Illuminate\Support\Collection
+    {
+        return $this->getPendingForRole($user->role_id);
+    }
+
+    public function getSubmission(string $id): ?Submission
+    {
+        return $this->submissionRepository->find($id);
+    }
+
+    public function getPendingForRole(string $roleId): \Illuminate\Support\Collection
     {
         $role = Role::find($roleId);
         if (!$role) {
-            return [];
+            return collect([]);
         }
 
         return $role->submissionsAtThisLevel()

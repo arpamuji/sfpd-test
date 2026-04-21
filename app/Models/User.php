@@ -16,12 +16,23 @@ class User extends Authenticatable
     public $keyType = 'string';
 
     protected $fillable = [
+        'id',
         'role_id',
+        'name',
         'email',
         'password',
         'google2fa_secret',
         'google2fa_enabled',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
+    }
 
     protected $hidden = ['password', 'google2fa_secret'];
 
