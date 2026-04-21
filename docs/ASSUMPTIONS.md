@@ -11,7 +11,7 @@
 
 2. **Satu user = satu role** - Tidak ada multi-role assignment.
 
-3. **Rejection kembali ke draft** - Submission yang ditolak kembali ke status `draft` dan restart full approval chain.
+3. **Rejection = submission stays rejected** - Submission yang ditolak tetap berstatus `rejected` (immutable record). Requestor harus membuat pengajuan **BARU** jika ingin mengajukan ulang. Ini memastikan audit trail yang jelas - setiap submission memiliki lifecycle yang terpisah.
 
 4. **Dokumen: Wajib 3 PDF + opsional foto** - Upload minimal 3 file PDF sebagai dokumen wajib. Foto/gambar boleh diupload tambahan, tapi 3 PDF adalah mandatory requirement.
    - PDF formats: `.pdf`

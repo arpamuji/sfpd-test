@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Models\Role;
+use App\Models\Submission;
 use App\Models\User;
 use App\Services\SubmissionService;
 use App\Repositories\Contracts\SubmissionRepositoryInterface;
@@ -41,7 +42,7 @@ class SubmissionServiceTest extends TestCase
         $this->submissionRepository
             ->shouldReceive('create')
             ->once()
-            ->andReturnUsing(fn($d) => \App\Models\Submission::create(array_merge($d, [
+            ->andReturnUsing(fn($d) => Submission::create(array_merge($d, [
                 'requestor_id' => $requestor->id,
                 'current_role_id' => $requestor->role_id,
             ])));
