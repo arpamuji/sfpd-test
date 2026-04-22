@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,9 +37,26 @@ class ApprovalLog extends Model
         'approver_role',
     ];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+        ];
+    }
+
+    protected function approverName(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->approver?->name
+        );
+    }
+
+    protected function approverRole(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->approver?->role?->name
+        );
+    }
 
     public function submission(): BelongsTo
     {
@@ -58,21 +76,5 @@ class ApprovalLog extends Model
     public function isRejection(): bool
     {
         return $this->action === 'reject';
-    }
-
-    /**
-     * Get the approver's name.
-     */
-    public function getApproverNameAttribute(): ?string
-    {
-        return $this->approver ? $this->approver->name : null;
-    }
-
-    /**
-     * Get the approver's role name.
-     */
-    public function getApproverRoleAttribute(): ?string
-    {
-        return $this->approver && $this->approver->role ? $this->approver->role->name : null;
     }
 }

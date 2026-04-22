@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +14,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     public $incrementing = false;
+
     public $keyType = 'string';
 
     protected $fillable = [
@@ -42,6 +42,7 @@ class User extends Authenticatable
     {
         return [
             'google2fa_enabled' => 'boolean',
+            'google2fa_secret' => 'encrypted',
             'password' => 'hashed',
         ];
     }
@@ -59,13 +60,5 @@ class User extends Authenticatable
     public function approvalLogs(): HasMany
     {
         return $this->hasMany(ApprovalLog::class, 'approver_id');
-    }
-
-    protected function twoFaSecret(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => $value ? decrypt($value) : null,
-            set: fn ($value) => $value ? encrypt($value) : null,
-        );
     }
 }
