@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -25,12 +26,31 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
+            'id' => Str::uuid()->toString(),
+            'role_id' => Role::factory(),
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'password' => static::$password ??= Hash::make('password123'),
             'remember_token' => Str::random(10),
+            'google2fa_secret' => null,
+            'google2fa_enabled' => false,
         ];
+    }
+
+    public function withRole($roleId): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role_id' => $roleId,
+        ]);
+    }
+
+    public function with2FA(bool $enabled = true): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'google2fa_enabled' => $enabled,
+            'google2fa_secret' => $enabled ? 'JBSWY3DPEHPK3PXP' : null,
+        ]);
     }
 
     /**

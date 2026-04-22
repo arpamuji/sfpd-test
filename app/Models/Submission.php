@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
+
+class Submission extends Model
+{
+    use HasFactory;
+
+    public $incrementing = false;
+
+    public $keyType = 'string';
+
+    protected static function booted(): void
+    {
+        static::creating(function (Submission $model) {
+            if (empty($model->id)) {
+                $model->id = Str::uuid()->toString();
+            }
+        });
+    }
+
+    protected $fillable = [
+        'id',
+        'requestor_id',
+        'current_role_id',
+        'status',
+        'warehouse_name',
+        'warehouse_address',
+        'latitude',
+        'longitude',
+        'budget_estimate',
+        'description',
+        'rejected_by',
+        'rejection_reason',
+        'submitted_at',
+        'approved_at',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'latitude' => 'decimal:8',
+            'longitude' => 'decimal:8',
+            'budget_estimate' => 'float',
+            'submitted_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'rejected_by' => 'string',
+        ];
+    }
+
+    protected $appends = [
+        'can_approve',
+        'can_reject',
+        'rejected_by_user',
+    ];
+
+    /**
+     * Check if the current user can approve this submission.
+     */
+    protected function canApprove(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => auth()->check() && $this->current_role_id === auth()->user()->role_id
+        );
+    }
+
+    /**
+     * Check if the current user can reject this submission.
+     */
+    protected function canReject(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => auth()->check() && $this->current_role_id === auth()->user()->role_id
+        );
+    }
+
+    /**
+     * Get the user who rejected this submission.
+     */
+    protected function rejectedByUser(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->relationLoaded('rejectedBy') && $this->rejectedBy ? [
+                'id' => $this->rejectedBy->id,
+                'name' => $this->rejectedBy->name,
+            ] : null,
+        );
+    }
+
+    public function requestor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requestor_id');
+    }
+
+    public function currentRole(): BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'current_role_id');
+    }
+
+    public function rejectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(SubmissionFile::class);
+    }
+
+    public function approvalLogs(): HasMany
+    {
+        return $this->hasMany(ApprovalLog::class);
+    }
+
+    public function isPending(): bool
+    {
+        return ! in_array($this->status, ['approved', 'rejected', 'draft']);
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === 'rejected';
+    }
+}
