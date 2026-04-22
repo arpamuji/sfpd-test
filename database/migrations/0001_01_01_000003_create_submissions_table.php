@@ -15,8 +15,8 @@ return new class extends Migration
             $table->string('status', 50)->default('draft');
             $table->string('warehouse_name');
             $table->text('warehouse_address');
-            $table->decimal('latitude', 10, 8);
-            $table->decimal('longitude', 11, 8);
+            $table->decimal('latitude', 12, 8);
+            $table->decimal('longitude', 12, 8);
             $table->decimal('budget_estimate', 15, 2);
             $table->text('description')->nullable();
             $table->uuid('rejected_by')->nullable();
