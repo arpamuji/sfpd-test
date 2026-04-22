@@ -1,59 +1,225 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Warehouse Construction Approval System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistem pengajuan pembangunan gudang distribusi dengan proses approval berjenjang (6 level), 2FA authentication, geolocation, dan upload dokumen.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Backend:** Laravel 12, PHP 8.3, PostgreSQL
+- **Frontend:** React 19, Inertia.js, Tailwind CSS 4, TypeScript
+- **Package Manager:** Bun 1.0+
+- **2FA:** pragmarx/google2fa-laravel (TOTP)
+- **Maps:** Leaflet.js + OpenStreetMap
+- **Icons:** Tabler Icons
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Requirements
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.3+
+- Bun 1.0+
+- Composer
 
-## Learning Laravel
+## Setup & Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 1. Install Dependencies
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+bun install
+composer install
+```
 
-## Laravel Sponsors
+### 2. Environment Configuration
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-### Premium Partners
+Database menggunakan PostgreSQL. Pastikan PostgreSQL sudah terinstall dan berjalan.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 3. Setup Database
 
-## Contributing
+```bash
+# Create database and user
+sudo -u postgres psql -c "CREATE DATABASE sfpd_test;"
+sudo -u postgres psql -c "CREATE USER sfpd_user WITH PASSWORD 'sfpdtest123';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE sfpd_test TO sfpd_user;"
+sudo -u postgres psql -d sfpd_test -c "GRANT ALL ON SCHEMA public TO sfpd_user;"
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# Update .env file
+# DB_CONNECTION=pgsql
+# DB_HOST=127.0.0.1
+# DB_PORT=5432
+# DB_DATABASE=sfpd_test
+# DB_USERNAME=sfpd_user
+# DB_PASSWORD=sfpdtest123
+```
 
-## Code of Conduct
+Install PHP PostgreSQL extension:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+sudo apt install php-pgsql
+```
 
-## Security Vulnerabilities
+### 4. Run Migrations
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+### 5. Jalankan Aplikasi
+
+Terminal 1 (Laravel):
+
+```bash
+php artisan serve
+```
+
+Terminal 2 (Vite):
+
+```bash
+bun run dev
+```
+
+Akses: http://localhost:8000
+
+### 6. Create Storage Symlink
+
+```bash
+php artisan storage:link
+```
+
+## Test User Accounts
+
+Semua user password: **password123**
+
+| Role                 | Email                      | 2FA Secret         | QR Code                                       |
+| -------------------- | -------------------------- | ------------------ | --------------------------------------------- |
+| Requestor            | requestor@test.com         | `JBSWY3DPEHPK3PXP` | [requester-test.png](docs/requester-test.png) |
+| SPV Gudang           | spv@test.com               | `KRSXG5CTMVRXEZLU` | [spv-test.png](docs/spv-test.png)             |
+| Kepala Gudang        | kepala@test.com            | `GEZDGNBVGY3TQOJQ` | [kepala-test.png](docs/kepala-test.png)       |
+| Manager Operasional  | manager@test.com           | `MFRGGZDFMY2TQNZZ` | [manager-test.png](docs/manager-test.png)     |
+| Direktur Operasional | direktur.ops@test.com      | `OVSG433SMVZWKZTH` | [dirops-test.png](docs/dirops-test.png)       |
+| Direktur Keuangan    | direktur.keuangan@test.com | `KRSXG5CTMVRXEZTB` | [dirkeu-test.png](docs/dirkeu-test.png)       |
+
+### Cara Login dengan 2FA
+
+1. Buka QR code untuk role yang ingin dicoba (klik link di atas)
+2. Scan dengan Google Authenticator / Authy
+3. Atau masukkan manual 2FA Secret
+4. Gunakan kode 6 digit dari aplikasi saat login
+
+## Approval Workflow
+
+```
+Requestor → SPV Gudang → Kepala Gudang → Manager Operasional → Direktur Operasional → Direktur Keuangan
+```
+
+**Status:**
+
+- `draft` - Pengajuan baru/belum dikirim
+- `pending_spv` - Menunggu review SPV Gudang
+- `pending_kepala` - Menunggu review Kepala Gudang
+- `pending_manager_ops` - Menunggu review Manager Operasional
+- `pending_direktur_ops` - Menunggu review Direktur Operasional
+- `pending_direktur_keuangan` - Menunggu review Direktur Keuangan
+- `approved` - Disetujui semua level
+- `rejected` - Ditolak (final, tidak bisa diubah)
+
+### Rejection Flow
+
+Jika pengajuan **ditolak**:
+
+- Status tetap `rejected` (tidak bisa diubah lagi)
+- Requestor harus membuat pengajuan **BARU** jika ingin mengajukan ulang
+- Setiap submission memiliki lifecycle terpisah untuk audit trail yang jelas
+
+## Fitur
+
+### Requestor
+
+- Buat pengajuan pembangunan gudang baru
+- Upload dokumen (3-10 file, PDF/JPG/PNG, max 5MB)
+- Lihat status dan riwayat approval
+- Track progress approval
+
+### Approver (Semua Level)
+
+- Lihat pengajuan pending di level mereka
+- Review detail: warehouse, budget, lokasi, dokumen
+- Lihat lokasi di map
+- Approve atau reject pengajuan
+- Tambahkan catatan approval
+
+### Dashboard
+
+- Stats: Total, Pending, Approved, Rejected
+- Tabel "My Submissions" (requestor)
+- Tabel "Pending Approvals" (approver)
+- Status badge: Draft (abu), Pending (kuning), Approved (hijau), Rejected (merah)
+
+## Architecture
+
+### Service-Repository Pattern
+
+```
+Controllers → Services → Repositories → Models
+```
+
+| Component                 | Fungsi                                  |
+| ------------------------- | --------------------------------------- |
+| `SubmissionService`       | CRUD, upload file, submit for approval  |
+| `ApprovalWorkflowService` | Approve/reject logic, pending approvals |
+| `TwoFactorAuthService`    | TOTP generation & verification          |
+| `Ensure2FAEnabled`        | Middleware proteksi route 2FA           |
+| `RoleCheck`               | Middleware role-based access            |
+
+### Database Schema
+
+- **roles** - 6 level approval dengan `next_role_id` chain
+- **users** - UUID, encrypted 2FA secrets
+- **submissions** - UUID, data warehouse, status approval
+- **submission_files** - Dokumen upload (3-10 file)
+- **approval_logs** - Riwayat approval/rejection
+
+## Build & Testing
+
+### Run Tests
+
+```bash
+php artisan test
+```
+
+### Production Build
+
+```bash
+bun run build
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+## Catatan
+
+- Pengajuan mulai dari status `draft`
+- Minimal 3 dokumen PDF required
+- 2FA secrets dienkripsi dengan `encrypt()` Laravel
+- Rate limiting login: 5 attempt per menit
+
+Dokumentasi tambahan:
+
+- [Asumsi & Design Decisions](docs/ASSUMPTIONS.md)
+- [Future Improvements](docs/IMPROVEMENTS.md)
+- [Technical Specs](docs/specs/)
+
+## Future Enhancements
+
+Lihat [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md):
+
+- Dynamic workflow engine
+- Email notifications
+- Multi-role support
+- Document versioning
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT License
