@@ -28,10 +28,20 @@ class DashboardController extends Controller
         $myDrafts = $this->submissionService->getMyDrafts($user);
         $pendingApprovals = $this->approvalService->getPendingApprovals($user);
 
+        // Calculate stats for the current user
+        $pendingStatuses = ['pending_spv', 'pending_kepala', 'pending_manager', 'pending_direktur_ops', 'pending_direktur_keuangan'];
+        $stats = [
+            'total' => $mySubmissions->total(),
+            'pending' => $mySubmissions->whereIn('status', $pendingStatuses)->count(),
+            'approved' => $mySubmissions->where('status', 'approved')->count(),
+            'rejected' => $mySubmissions->where('status', 'rejected')->count(),
+        ];
+
         return Inertia::render('Dashboard/Dashboard', [
             'mySubmissions' => $mySubmissions,
             'myDrafts' => $myDrafts,
             'pendingApprovals' => $pendingApprovals,
+            'stats' => $stats,
         ]);
     }
 }
