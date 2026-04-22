@@ -30,7 +30,7 @@ class CreateSubmissionTest extends TestCase
             UploadedFile::fake()->create('document3.pdf', 100, 'application/pdf'),
         ];
 
-        $response = $this->actingAs($user)->post(route('submissions.store'), [
+        $response = $this->actingAs($user)->withSession(['2fa_verified' => true])->post(route('submissions.store'), [
             'warehouse_name' => 'Test Warehouse',
             'warehouse_address' => '123 Test St',
             'latitude' => -6.2088,
@@ -78,7 +78,7 @@ class CreateSubmissionTest extends TestCase
             UploadedFile::fake()->create('specs.pdf', 100, 'application/pdf'),
         ];
 
-        $this->actingAs($user)->post(route('submissions.store'), [
+        $this->actingAs($user)->withSession(['2fa_verified' => true])->post(route('submissions.store'), [
             'warehouse_name' => 'Test Warehouse',
             'warehouse_address' => '123 Test St',
             'latitude' => -6.2088,
@@ -88,6 +88,8 @@ class CreateSubmissionTest extends TestCase
         ]);
 
         $submission = Submission::where('warehouse_name', 'Test Warehouse')->first();
+        $this->assertNotNull($submission);
+
         $savedFiles = SubmissionFile::where('submission_id', $submission->id)->get();
 
         $this->assertCount(3, $savedFiles);
@@ -107,16 +109,18 @@ class CreateSubmissionTest extends TestCase
         $requestorRole = Role::factory()->create(['name' => 'Requestor', 'next_role_id' => $spvRole->id]);
         $user = User::factory()->withRole($requestorRole->id)->create(['google2fa_enabled' => true]);
 
-        $response = $this->actingAs($user)->post(route('submissions.store'), [
+        $files = [
+            UploadedFile::fake()->create('doc1.pdf', 100),
+            UploadedFile::fake()->create('doc2.pdf', 100),
+        ];
+
+        $response = $this->actingAs($user)->withSession(['2fa_verified' => true])->post(route('submissions.store'), [
             'warehouse_name' => 'Test Warehouse',
             'warehouse_address' => '123 Test St',
             'latitude' => -6.2088,
             'longitude' => 106.8456,
             'budget_estimate' => 100000000,
-            'files' => [
-                UploadedFile::fake()->create('doc1.pdf', 100),
-                UploadedFile::fake()->create('doc2.pdf', 100),
-            ],
+            'files' => $files,
         ]);
 
         $response->assertSessionHasErrors('files');
@@ -133,7 +137,7 @@ class CreateSubmissionTest extends TestCase
             $files[] = UploadedFile::fake()->create("doc{$i}.pdf", 100);
         }
 
-        $response = $this->actingAs($user)->post(route('submissions.store'), [
+        $response = $this->actingAs($user)->withSession(['2fa_verified' => true])->post(route('submissions.store'), [
             'warehouse_name' => 'Test Warehouse',
             'warehouse_address' => '123 Test St',
             'latitude' => -6.2088,
@@ -157,7 +161,7 @@ class CreateSubmissionTest extends TestCase
             UploadedFile::fake()->create('archive.zip', 100, 'application/zip'),
         ];
 
-        $response = $this->actingAs($user)->post(route('submissions.store'), [
+        $response = $this->actingAs($user)->withSession(['2fa_verified' => true])->post(route('submissions.store'), [
             'warehouse_name' => 'Test Warehouse',
             'warehouse_address' => '123 Test St',
             'latitude' => -6.2088,
@@ -166,7 +170,7 @@ class CreateSubmissionTest extends TestCase
             'files' => $files,
         ]);
 
-        $response->assertSessionHasErrors('files.2');
+        $response->assertSessionHasErrors(['files.2']);
     }
 
     public function test_submission_rejects_file_exceeding_5mb(): void
@@ -178,10 +182,10 @@ class CreateSubmissionTest extends TestCase
         $files = [
             UploadedFile::fake()->create('small.pdf', 100, 'application/pdf'),
             UploadedFile::fake()->create('medium.pdf', 100, 'application/pdf'),
-            UploadedFile::fake()->create('large.pdf', 6000, 'application/pdf'), // 6MB
+            UploadedFile::fake()->create('large.pdf', 5121, 'application/pdf'), // Just over 5MB (5120KB)
         ];
 
-        $response = $this->actingAs($user)->post(route('submissions.store'), [
+        $response = $this->actingAs($user)->withSession(['2fa_verified' => true])->post(route('submissions.store'), [
             'warehouse_name' => 'Test Warehouse',
             'warehouse_address' => '123 Test St',
             'latitude' => -6.2088,
@@ -190,6 +194,6 @@ class CreateSubmissionTest extends TestCase
             'files' => $files,
         ]);
 
-        $response->assertSessionHasErrors('files.2');
+        $response->assertSessionHasErrors(['files.2']);
     }
 }

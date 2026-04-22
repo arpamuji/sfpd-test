@@ -49,7 +49,7 @@ class ApprovalController extends Controller
                 $request->input('notes')
             );
 
-            return redirect()->route('submissions.show', $submission)->with('success', 'Submission approved.');
+            return redirect()->route('submissions.index')->with('success', 'Submission approved successfully.');
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -73,7 +73,7 @@ class ApprovalController extends Controller
                 $request->input('notes')
             );
 
-            return redirect()->route('submissions.show', $submission)->with('success', 'Submission rejected.');
+            return redirect()->route('submissions.index')->with('success', 'Submission rejected.');
         } catch (\InvalidArgumentException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }

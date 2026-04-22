@@ -20,13 +20,11 @@
 
 ## Security Enhancements
 
-1. **Encrypted 2FA Secrets at Rest** - Implementasi encryption untuk `google2fa_secret` column (belum diimplementasi di versi ini).
+1. **Rate Limiting** - Add rate limiting untuk login dan 2FA verification endpoints.
 
-2. **Rate Limiting** - Add rate limiting untuk login dan 2FA verification endpoints.
+2. **Audit Logging** - Comprehensive activity logs untuk semua user actions (login, create, update, delete).
 
-3. **Audit Logging** - Comprehensive activity logs untuk semua user actions (login, create, update, delete).
-
-4. **File Scan** - Virus scanning untuk uploaded documents sebelum disimpan.
+3. **File Scan** - Virus scanning untuk uploaded documents sebelum disimpan.
 
 ---
 
