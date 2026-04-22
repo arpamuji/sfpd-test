@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +9,25 @@ import {
     IconPlus,
     IconLogout,
     IconMenu2,
+    IconUser,
 } from "@tabler/icons-react";
 import { useToast } from "@/hooks/useToast";
+
+interface User {
+    id: string;
+    name: string;
+    email: string;
+    role?: {
+        id: string;
+        name: string;
+    } | null;
+}
+
+interface PageProps {
+    auth: {
+        user: User | null;
+    };
+}
 
 interface Props {
     title: string;
@@ -21,6 +38,8 @@ export default function AppLayout({ title, children }: Props) {
     useToast();
     const { post } = useForm({});
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const { auth } = usePage<PageProps>().props;
+    const user = auth?.user;
 
     const handleLogout = () => {
         post(route("logout"));
@@ -85,7 +104,22 @@ export default function AppLayout({ title, children }: Props) {
                     </nav>
 
                     {/* Sidebar footer */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sidebar-border">
+                    <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sidebar-border space-y-3">
+                        {user && (
+                            <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-sidebar-accent/50">
+                                <div className="w-8 h-8 rounded-full bg-sidebar-primary flex items-center justify-center flex-shrink-0">
+                                    <IconUser className="w-4 h-4 text-sidebar-primary-foreground" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-sidebar-foreground truncate">
+                                        {user.name}
+                                    </p>
+                                    <p className="text-xs text-sidebar-foreground/70 truncate">
+                                        {user.role?.name || "User"}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         <Button
                             variant="ghost"
                             onClick={handleLogout}

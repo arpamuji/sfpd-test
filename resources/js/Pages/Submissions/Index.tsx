@@ -38,10 +38,11 @@ interface SubmissionsData {
 }
 
 interface Props {
-    submissions: SubmissionsData;
+    mySubmissions: SubmissionsData;
+    pendingApprovals?: Submission[];
 }
 
-export default function Index({ submissions }: Props) {
+export default function Index({ mySubmissions, pendingApprovals }: Props) {
     const handlePageChange = (page: number) => {
         router.get(
             route("submissions.index"),
@@ -70,9 +71,82 @@ export default function Index({ submissions }: Props) {
                 </Button>
             </div>
 
+            {/* Pending Approvals */}
+            {pendingApprovals && pendingApprovals.length > 0 && (
+                <Card className="mb-6 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20">
+                    <CardHeader>
+                        <CardTitle className="text-amber-900 dark:text-amber-100">
+                            Needs Your Approval
+                        </CardTitle>
+                        <p className="text-sm text-amber-700 dark:text-amber-300">
+                            {pendingApprovals.length} submission(s) awaiting
+                            your review
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Warehouse</TableHead>
+                                    <TableHead>Budget</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Created</TableHead>
+                                    <TableHead>Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {pendingApprovals.map((submission) => (
+                                    <TableRow
+                                        key={submission.id}
+                                        className="py-3"
+                                    >
+                                        <TableCell className="font-medium py-3">
+                                            {submission.warehouse_name}
+                                        </TableCell>
+                                        <TableCell className="py-3">
+                                            Rp{" "}
+                                            {submission.budget_estimate.toLocaleString(
+                                                "id-ID",
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="py-3">
+                                            <StatusBadge
+                                                status={submission.status}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-muted-foreground py-3">
+                                            {new Date(
+                                                submission.created_at,
+                                            ).toLocaleDateString("id-ID", {
+                                                day: "numeric",
+                                                month: "short",
+                                                year: "numeric",
+                                            })}
+                                        </TableCell>
+                                        <TableCell className="py-3">
+                                            <Link
+                                                href={route(
+                                                    "submissions.show",
+                                                    submission.id,
+                                                )}
+                                                className="inline-flex items-center justify-center w-8 h-8 rounded-md hover:bg-amber-200 dark:hover:bg-amber-800 text-amber-700 dark:text-amber-300 transition-colors"
+                                                title="Review submission"
+                                            >
+                                                <IconEye className="w-4 h-4" />
+                                            </Link>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* My Submissions */}
             <Card>
                 <CardHeader>
-                    <CardTitle>All Submissions</CardTitle>
+                    <CardTitle>My Submissions</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -86,8 +160,8 @@ export default function Index({ submissions }: Props) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {submissions.data.length > 0 ? (
-                                submissions.data.map((submission) => (
+                            {mySubmissions.data.length > 0 ? (
+                                mySubmissions.data.map((submission) => (
                                     <TableRow
                                         key={submission.id}
                                         className="py-3"
@@ -144,11 +218,12 @@ export default function Index({ submissions }: Props) {
                     </Table>
 
                     {/* Pagination */}
-                    {submissions.last_page > 1 && (
+                    {mySubmissions.last_page > 1 && (
                         <div className="flex items-center justify-between mt-4">
                             <p className="text-sm text-muted-foreground">
-                                Showing {submissions.from} to {submissions.to}{" "}
-                                of {submissions.total} results
+                                Showing {mySubmissions.from} to{" "}
+                                {mySubmissions.to} of {mySubmissions.total}{" "}
+                                results
                             </p>
                             <div className="flex items-center gap-2">
                                 <Button
@@ -156,28 +231,28 @@ export default function Index({ submissions }: Props) {
                                     size="sm"
                                     onClick={() =>
                                         handlePageChange(
-                                            submissions.current_page - 1,
+                                            mySubmissions.current_page - 1,
                                         )
                                     }
-                                    disabled={submissions.current_page === 1}
+                                    disabled={mySubmissions.current_page === 1}
                                 >
                                     <IconChevronLeft className="w-4 h-4" />
                                 </Button>
                                 <span className="text-sm text-muted-foreground">
-                                    Page {submissions.current_page} of{" "}
-                                    {submissions.last_page}
+                                    Page {mySubmissions.current_page} of{" "}
+                                    {mySubmissions.last_page}
                                 </span>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() =>
                                         handlePageChange(
-                                            submissions.current_page + 1,
+                                            mySubmissions.current_page + 1,
                                         )
                                     }
                                     disabled={
-                                        submissions.current_page ===
-                                        submissions.last_page
+                                        mySubmissions.current_page ===
+                                        mySubmissions.last_page
                                     }
                                 >
                                     <IconChevronRight className="w-4 h-4" />
