@@ -20,11 +20,13 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import LocationMap from "@/components/maps/LocationMap";
 import {
     IconArrowLeft,
     IconCheck,
     IconX,
     IconPaperclip,
+    IconMapPin,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 
@@ -32,8 +34,8 @@ interface ApprovalLog {
     id: string;
     approver_name: string;
     approver_role: string;
-    action: "approved" | "rejected";
-    remarks?: string;
+    action: "approve" | "reject";
+    notes?: string | null;
     created_at: string;
 }
 
@@ -48,9 +50,13 @@ interface Submission {
     status: string;
     created_at: string;
     files?: { id: string; name: string; url: string }[];
-    approvalLogs: ApprovalLog[];
+    approval_logs: ApprovalLog[];
     can_approve: boolean;
     can_reject: boolean;
+    rejected_by_user?: { id: string; name: string } | null;
+    rejection_reason?: string | null;
+    submitted_at?: string | null;
+    approved_at?: string | null;
 }
 
 interface Props {
@@ -82,8 +88,12 @@ export default function Show({ submission }: Props) {
                 ? route("approvals.approve", submission.id)
                 : route("approvals.reject", submission.id),
             {
-                preserveScroll: true,
-                preserveState: true,
+                preserveScroll: false,
+                preserveState: false,
+                onSuccess: () => {
+                    setAction(null);
+                    setData("notes", "");
+                },
             },
         );
     };
@@ -122,6 +132,31 @@ export default function Show({ submission }: Props) {
             </div>
 
             <div className="space-y-6">
+                {/* Rejection Notice */}
+                {submission.status === "rejected" &&
+                    submission.rejection_reason && (
+                        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                                    <IconX className="w-5 h-5" />
+                                    Submission Rejected
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-red-700 dark:text-red-300">
+                                    <span className="font-medium">Reason:</span>{" "}
+                                    {submission.rejection_reason}
+                                </p>
+                                {submission.rejected_by_user && (
+                                    <p className="text-xs text-red-600 dark:text-red-400 mt-2">
+                                        Rejected by{" "}
+                                        {submission.rejected_by_user.name}
+                                    </p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
                 {/* Submission Details */}
                 <Card>
                     <CardHeader>
@@ -144,15 +179,6 @@ export default function Show({ submission }: Props) {
                                     </TableCell>
                                     <TableCell>
                                         {submission.warehouse_address}
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="font-medium">
-                                        Coordinates
-                                    </TableCell>
-                                    <TableCell>
-                                        {submission.latitude},{" "}
-                                        {submission.longitude}
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
@@ -193,6 +219,27 @@ export default function Show({ submission }: Props) {
                     </CardContent>
                 </Card>
 
+                {/* Warehouse Location Map */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <IconMapPin className="w-5 h-5" />
+                            Warehouse Location
+                        </CardTitle>
+                        <CardDescription>
+                            Proposed warehouse location at (
+                            {submission.latitude}, {submission.longitude})
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <LocationMap
+                            latitude={submission.latitude}
+                            longitude={submission.longitude}
+                            className="w-full"
+                        />
+                    </CardContent>
+                </Card>
+
                 {/* Documents */}
                 {submission.files && submission.files.length > 0 && (
                     <Card>
@@ -221,6 +268,80 @@ export default function Show({ submission }: Props) {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* Approval History */}
+                {submission.approval_logs &&
+                    submission.approval_logs.length > 0 && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Approval History</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Approver</TableHead>
+                                            <TableHead>Role</TableHead>
+                                            <TableHead>Action</TableHead>
+                                            <TableHead>Notes</TableHead>
+                                            <TableHead>Date</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {submission.approval_logs.map((log) => (
+                                            <TableRow key={log.id}>
+                                                <TableCell className="font-medium">
+                                                    {log.approver_name}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {log.approver_role}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span
+                                                        className={cn(
+                                                            "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium",
+                                                            log.action ===
+                                                                "approve"
+                                                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+                                                        )}
+                                                    >
+                                                        {log.action ===
+                                                        "approve" ? (
+                                                            <IconCheck className="w-3 h-3" />
+                                                        ) : (
+                                                            <IconX className="w-3 h-3" />
+                                                        )}
+                                                        {log.action ===
+                                                        "approve"
+                                                            ? "Approved"
+                                                            : "Rejected"}
+                                                    </span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {log.notes ?? "-"}
+                                                </TableCell>
+                                                <TableCell className="text-muted-foreground">
+                                                    {new Date(
+                                                        log.created_at,
+                                                    ).toLocaleDateString(
+                                                        "id-ID",
+                                                        {
+                                                            year: "numeric",
+                                                            month: "long",
+                                                            day: "numeric",
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        },
+                                                    )}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    )}
 
                 {/* Approval Actions */}
                 {(submission.can_approve || submission.can_reject) && (
@@ -326,78 +447,6 @@ export default function Show({ submission }: Props) {
                         </CardContent>
                     </Card>
                 )}
-
-                {/* Approval History */}
-                {submission.approvalLogs &&
-                    submission.approvalLogs.length > 0 && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Approval History</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Approver</TableHead>
-                                            <TableHead>Role</TableHead>
-                                            <TableHead>Action</TableHead>
-                                            <TableHead>Remarks</TableHead>
-                                            <TableHead>Date</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {submission.approvalLogs.map((log) => (
-                                            <TableRow key={log.id}>
-                                                <TableCell className="font-medium">
-                                                    {log.approver_name}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.approver_role}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span
-                                                        className={cn(
-                                                            "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium",
-                                                            log.action ===
-                                                                "approved"
-                                                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                                                : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-                                                        )}
-                                                    >
-                                                        {log.action ===
-                                                        "approved" ? (
-                                                            <IconCheck className="w-3 h-3" />
-                                                        ) : (
-                                                            <IconX className="w-3 h-3" />
-                                                        )}
-                                                        {log.action ===
-                                                        "approved"
-                                                            ? "Approved"
-                                                            : "Rejected"}
-                                                    </span>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {log.remarks || "-"}
-                                                </TableCell>
-                                                <TableCell className="text-muted-foreground">
-                                                    {new Date(
-                                                        log.created_at,
-                                                    ).toLocaleDateString(
-                                                        "id-ID",
-                                                        {
-                                                            year: "numeric",
-                                                            month: "long",
-                                                            day: "numeric",
-                                                        },
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </CardContent>
-                        </Card>
-                    )}
             </div>
         </AppLayout>
     );

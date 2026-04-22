@@ -106,12 +106,9 @@ export default function LocationMap({
 
     return (
         <div className={className}>
-            <label className="block text-sm font-medium text-foreground mb-2">
-                Location
-            </label>
             <div
                 ref={mapRef}
-                className="h-64 w-full rounded-md border border-border"
+                className="h-80 w-full rounded-md border border-border"
             />
         </div>
     );
