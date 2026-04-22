@@ -9,6 +9,7 @@ interface Props {
     disabled?: boolean;
     className?: string;
     prefix?: string;
+    maxLength?: number;
 }
 
 /**
@@ -41,6 +42,7 @@ export default function CurrencyInput({
     disabled,
     className,
     prefix = "Rp ",
+    maxLength = 17, // 999.999.999.999.999 (999 trillion)
 }: Props) {
     const formattedValue = formatCurrency(value);
 
@@ -60,6 +62,7 @@ export default function CurrencyInput({
                 id={id}
                 type="text"
                 inputMode="numeric"
+                maxLength={maxLength}
                 value={formattedValue}
                 onChange={handleChange}
                 placeholder={placeholder}

@@ -80,10 +80,14 @@ export default function Create() {
     };
 
     const handleLocationChange = (lat: number, lng: number) => {
-        setLatitude(lat);
-        setLongitude(lng);
-        setData("latitude", String(lat));
-        setData("longitude", String(lng));
+        // Round to 6 decimal places
+        const roundedLat = Math.round(lat * 1000000) / 1000000;
+        const roundedLng = Math.round(lng * 1000000) / 1000000;
+
+        setLatitude(roundedLat);
+        setLongitude(roundedLng);
+        setData("latitude", String(roundedLat));
+        setData("longitude", String(roundedLng));
     };
 
     return (
@@ -167,6 +171,9 @@ export default function Create() {
                                         id="latitude"
                                         type="number"
                                         step="0.000001"
+                                        max="90"
+                                        min="-90"
+                                        placeholder="-6.208992"
                                         value={data.latitude}
                                         onChange={(e) =>
                                             setData("latitude", e.target.value)
@@ -184,6 +191,9 @@ export default function Create() {
                                         id="longitude"
                                         type="number"
                                         step="0.000001"
+                                        max="180"
+                                        min="-180"
+                                        placeholder="106.845600"
                                         value={data.longitude}
                                         onChange={(e) =>
                                             setData("longitude", e.target.value)
@@ -223,6 +233,7 @@ export default function Create() {
                                     value={data.budget_estimate}
                                     onChange={handleBudgetChange}
                                     placeholder="5.000.000.000"
+                                    maxLength={17}
                                 />
                                 {errors.budget_estimate && (
                                     <p className="text-sm text-destructive">

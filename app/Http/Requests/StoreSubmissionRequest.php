@@ -24,7 +24,7 @@ class StoreSubmissionRequest extends FormRequest
             'warehouse_address' => ['required', 'string', 'max:500'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'budget_estimate' => ['required', 'numeric', 'min:0'],
+            'budget_estimate' => ['required', 'numeric', 'min:0', 'max:999999999999999'], // Max 999 trillion (15 digits)
             'description' => ['nullable', 'string', 'max:1000'],
             'files' => ['required', 'array', 'min:'.self::MIN_FILES, 'max:'.self::MAX_FILES],
             'files.*' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:'.self::MAX_FILE_SIZE_KB],
