@@ -14,10 +14,18 @@ class Ensure2FAEnabled
             return redirect()->route('login');
         }
 
-        if (! auth()->user()->google2fa_enabled) {
-            return redirect()->route('2fa.setup');
+        $user = auth()->user();
+
+        // User has 2FA enabled - check session flag for verified status
+        if ($user->google2fa_enabled) {
+            if (! session()->get('2fa_verified')) {
+                return redirect()->route('2fa.verify');
+            }
+
+            return $next($request);
         }
 
-        return $next($request);
+        // User doesn't have 2FA enabled - redirect to setup
+        return redirect()->route('2fa.setup');
     }
 }

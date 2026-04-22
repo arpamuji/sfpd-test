@@ -7,6 +7,7 @@ use App\Http\Requests\TwoFactorRequest;
 use App\Services\TwoFactorAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -65,7 +66,18 @@ class TwoFactorController extends Controller
      */
     public function showVerification()
     {
-        return Inertia::render('Auth/TwoFactorVerify');
+        $user = Auth::user();
+        $throttleKey = '2fa-verify-'.$user->id;
+
+        // Pass throttle info if user is rate limited
+        $throttleUntil = null;
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $throttleUntil = now()->addSeconds(RateLimiter::availableIn($throttleKey))->timestamp;
+        }
+
+        return Inertia::render('Auth/TwoFactorVerify', [
+            'throttleUntil' => $throttleUntil,
+        ]);
     }
 
     /**
@@ -75,11 +87,37 @@ class TwoFactorController extends Controller
     {
         $user = Auth::user();
         $secret = $user->google2fa_secret;
+        $throttleKey = '2fa-verify-'.$user->id;
 
+        // Check if throttled FIRST
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return back()->withErrors([
+                'code' => 'Too many failed attempts. Please try again in '.RateLimiter::availableIn($throttleKey).' seconds.',
+            ])->onlyInput('code')->with('throttleUntil', now()->addSeconds(RateLimiter::availableIn($throttleKey))->timestamp);
+        }
+
+        // Verify the code
         if ($this->twoFactorService->verifyCode($secret, $request->input('code'))) {
+            // Clear throttle on success and mark 2FA as verified for this session
+            RateLimiter::clear($throttleKey);
+            session(['2fa_verified' => true]);
+
             return redirect()->intended(route('dashboard'));
         }
 
-        return back()->withErrors(['code' => 'Invalid authentication code.']);
+        // Invalid code - increment throttle counter
+        RateLimiter::hit($throttleKey, 60);
+        $remaining = 5 - RateLimiter::attempts($throttleKey);
+
+        // If now throttled, pass the throttle until time
+        $response = back()->withErrors([
+            'code' => 'Invalid authentication code. '.$remaining.' attempts remaining.',
+        ])->onlyInput('code');
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $response->with('throttleUntil', now()->addSeconds(RateLimiter::availableIn($throttleKey))->timestamp);
+        }
+
+        return $response;
     }
 }

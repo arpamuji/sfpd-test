@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,7 @@ class Submission extends Model
     use HasFactory;
 
     public $incrementing = false;
+
     public $keyType = 'string';
 
     protected static function booted(): void
@@ -46,10 +48,35 @@ class Submission extends Model
         return [
             'latitude' => 'decimal:8',
             'longitude' => 'decimal:8',
-            'budget_estimate' => 'decimal:2',
+            'budget_estimate' => 'float',
             'submitted_at' => 'datetime',
             'approved_at' => 'datetime',
         ];
+    }
+
+    protected $appends = [
+        'can_approve',
+        'can_reject',
+    ];
+
+    /**
+     * Check if the current user can approve this submission.
+     */
+    protected function canApprove(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => auth()->check() && $this->current_role_id === auth()->user()->role_id
+        );
+    }
+
+    /**
+     * Check if the current user can reject this submission.
+     */
+    protected function canReject(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => auth()->check() && $this->current_role_id === auth()->user()->role_id
+        );
     }
 
     public function requestor(): BelongsTo
@@ -79,7 +106,7 @@ class Submission extends Model
 
     public function isPending(): bool
     {
-        return !in_array($this->status, ['approved', 'rejected', 'draft']);
+        return ! in_array($this->status, ['approved', 'rejected', 'draft']);
     }
 
     public function isDraft(): bool

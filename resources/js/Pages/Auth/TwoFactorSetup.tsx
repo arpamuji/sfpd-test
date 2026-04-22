@@ -1,11 +1,13 @@
 import { useState, FormEventHandler } from "react";
 import { Head, useForm } from "@inertiajs/react";
+import { useToast } from "@/hooks/useToast";
 
 interface Props {
     qrCodeSvg: string;
 }
 
 export default function TwoFactorSetup({ qrCodeSvg }: Props) {
+    useToast();
     const { data, setData, post, processing, errors, reset } = useForm({
         code: "",
     });

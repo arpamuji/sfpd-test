@@ -6,32 +6,44 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class LoginController extends Controller
 {
-    /**
-     * Show the login form.
-     *
-     * @return Response
-     */
     public function showLoginForm()
     {
-        return Inertia::render('Auth/Login');
+        $email = request('email') ?? '';
+        $throttleKey = 'login-'.request()->ip().'-'.Str::lower($email);
+        $throttleUntil = null;
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $throttleUntil = now()->addSeconds(RateLimiter::availableIn($throttleKey))->timestamp;
+        }
+
+        return Inertia::render('Auth/Login', [
+            'throttleUntil' => $throttleUntil,
+        ]);
     }
 
-    /**
-     * Handle login attempt.
-     * Redirects to 2FA verification if user has 2FA enabled.
-     */
     public function login(LoginRequest $request): RedirectResponse
     {
+        $throttleKey = 'login-'.$request->ip().'-'.Str::lower($request->input('email'));
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            return back()->withErrors([
+                'email' => 'Too many failed attempts. Please try again in '.RateLimiter::availableIn($throttleKey).' seconds.',
+            ])->onlyInput('email')->with('throttleUntil', now()->addSeconds(RateLimiter::availableIn($throttleKey))->timestamp);
+        }
+
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             $user = Auth::user();
+
+            RateLimiter::clear($throttleKey);
 
             if ($user->google2fa_enabled) {
                 return redirect()->route('2fa.verify');
@@ -40,12 +52,17 @@ class LoginController extends Controller
             return redirect()->intended(route('dashboard'));
         }
 
-        return back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
+        RateLimiter::hit($throttleKey, 60);
+
+        $response = back()->withErrors(['email' => 'Invalid credentials.'])->onlyInput('email');
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $response->with('throttleUntil', now()->addSeconds(RateLimiter::availableIn($throttleKey))->timestamp);
+        }
+
+        return $response;
     }
 
-    /**
-     * Log the user out and invalidate session.
-     */
     public function logout(): RedirectResponse
     {
         Auth::logout();
