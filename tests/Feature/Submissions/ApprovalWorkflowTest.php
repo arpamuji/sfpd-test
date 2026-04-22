@@ -29,7 +29,7 @@ class ApprovalWorkflowTest extends TestCase
             'status' => 'pending_spv',
         ]);
 
-        $response = $this->actingAs($spv)->post(route('approvals.approve', $submission), [
+        $response = $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), [
             'action' => 'approve',
         ]);
 
@@ -56,7 +56,7 @@ class ApprovalWorkflowTest extends TestCase
             'status' => 'pending_spv',
         ]);
 
-        $response = $this->actingAs($spv)->post(route('approvals.reject', $submission), [
+        $response = $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.reject', $submission), [
             'action' => 'reject',
             'notes' => 'Budget too high',
         ]);
@@ -85,7 +85,7 @@ class ApprovalWorkflowTest extends TestCase
         ]);
 
         // Try to reject without notes
-        $response = $this->actingAs($spv)->post(route('approvals.reject', $submission), [
+        $response = $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.reject', $submission), [
             'action' => 'reject',
             'notes' => '',
         ]);
@@ -113,7 +113,7 @@ class ApprovalWorkflowTest extends TestCase
         ]);
 
         // Approve without notes - should succeed
-        $response = $this->actingAs($spv)->post(route('approvals.approve', $submission), [
+        $response = $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), [
             'action' => 'approve',
             // No notes provided
         ]);
@@ -139,7 +139,7 @@ class ApprovalWorkflowTest extends TestCase
             'status' => 'pending_spv',
         ]);
 
-        $this->actingAs($spv)->post(route('approvals.approve', $submission), [
+        $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), [
             'action' => 'approve',
             'notes' => 'Looks good',
         ]);
@@ -167,7 +167,7 @@ class ApprovalWorkflowTest extends TestCase
             'status' => 'pending_spv',
         ]);
 
-        $this->actingAs($spv)->post(route('approvals.reject', $submission), [
+        $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.reject', $submission), [
             'action' => 'reject',
             'notes' => 'Budget too high',
         ]);
@@ -195,7 +195,7 @@ class ApprovalWorkflowTest extends TestCase
             'status' => 'pending_spv',
         ]);
 
-        $this->actingAs($spv)->post(route('approvals.reject', $submission), [
+        $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.reject', $submission), [
             'action' => 'reject',
             'notes' => 'Incomplete documentation',
         ]);
@@ -264,31 +264,31 @@ class ApprovalWorkflowTest extends TestCase
         ]);
 
         // Level 1: SPV approves
-        $this->actingAs($spv)->post(route('approvals.approve', $submission), ['action' => 'approve']);
+        $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), ['action' => 'approve']);
         $submission->refresh();
         $this->assertEquals('pending_kepala', $submission->status);
         $this->assertEquals($kepalaRole->id, $submission->current_role_id);
 
         // Level 2: Kepala approves
-        $this->actingAs($kepala)->post(route('approvals.approve', $submission), ['action' => 'approve']);
+        $this->actingAs($kepala)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), ['action' => 'approve']);
         $submission->refresh();
         $this->assertEquals('pending_manager_ops', $submission->status);
         $this->assertEquals($managerRole->id, $submission->current_role_id);
 
         // Level 3: Manager approves
-        $this->actingAs($manager)->post(route('approvals.approve', $submission), ['action' => 'approve']);
+        $this->actingAs($manager)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), ['action' => 'approve']);
         $submission->refresh();
         $this->assertEquals('pending_direktur_ops', $submission->status);
         $this->assertEquals($direkturOpsRole->id, $submission->current_role_id);
 
         // Level 4: Direktur Ops approves
-        $this->actingAs($direkturOps)->post(route('approvals.approve', $submission), ['action' => 'approve']);
+        $this->actingAs($direkturOps)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), ['action' => 'approve']);
         $submission->refresh();
         $this->assertEquals('pending_direktur_keuangan', $submission->status);
         $this->assertEquals($direkturKeuanganRole->id, $submission->current_role_id);
 
         // Level 5: Direktur Keuangan approves (final)
-        $this->actingAs($direkturKeuangan)->post(route('approvals.approve', $submission), ['action' => 'approve']);
+        $this->actingAs($direkturKeuangan)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), ['action' => 'approve']);
         $submission->refresh();
         $this->assertEquals('approved', $submission->status);
         $this->assertNotNull($submission->approved_at);
@@ -310,7 +310,7 @@ class ApprovalWorkflowTest extends TestCase
         ]);
 
         // SPV rejects - submission stays rejected
-        $this->actingAs($spv)->post(route('approvals.reject', $submission), [
+        $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.reject', $submission), [
             'action' => 'reject',
             'notes' => 'Needs revision',
         ]);
@@ -320,7 +320,7 @@ class ApprovalWorkflowTest extends TestCase
         $this->assertNotNull($submission->rejection_reason);
 
         // Rejected submission cannot be approved - should redirect back with error
-        $response = $this->actingAs($spv)->post(route('approvals.approve', $submission), ['action' => 'approve']);
+        $response = $this->actingAs($spv)->withSession(['2fa_verified' => true])->post(route('approvals.approve', $submission), ['action' => 'approve']);
 
         $response->assertRedirect();
         $submission->refresh();
