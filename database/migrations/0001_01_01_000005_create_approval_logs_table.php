@@ -10,11 +10,14 @@ return new class extends Migration
     {
         Schema::create('approval_logs', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('submission_id')->constrained('submissions')->cascadeOnDelete();
-            $table->foreignUuid('approver_id')->constrained('users');
+            $table->uuid('submission_id');
+            $table->uuid('approver_id');
             $table->string('action', 10);
             $table->text('notes')->nullable();
             $table->timestamps();
+
+            $table->foreign('submission_id')->references('id')->on('submissions')->cascadeOnDelete();
+            $table->foreign('approver_id')->references('id')->on('users');
         });
     }
 

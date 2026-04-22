@@ -10,12 +10,14 @@ return new class extends Migration
     {
         Schema::create('submission_files', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->foreignUuid('submission_id')->constrained('submissions')->cascadeOnDelete();
+            $table->uuid('submission_id');
             $table->string('file_name');
             $table->string('file_path');
             $table->integer('file_size');
             $table->string('file_type', 50);
             $table->timestamps();
+
+            $table->foreign('submission_id')->references('id')->on('submissions')->cascadeOnDelete();
         });
     }
 
