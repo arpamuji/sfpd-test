@@ -201,9 +201,34 @@ php artisan view:cache
 ## Catatan
 
 - Pengajuan mulai dari status `draft`
-- Minimal 3 dokumen PDF required
 - 2FA secrets dienkripsi dengan `encrypt()` Laravel
 - Rate limiting login: 5 attempt per menit
+
+## Validasi Form
+
+**Pengajuan Baru:**
+
+| Field           | Validasi                                  |
+| --------------- | ----------------------------------------- |
+| Nama gudang     | Required, max 255 karakter                |
+| Alamat gudang   | Required, max 500 karakter                |
+| Latitude        | Required, numeric: -90 sampai 90          |
+| Longitude       | Required, numeric: -180 sampai 180        |
+| Estimasi budget | Required, numeric, min 0                  |
+| Deskripsi       | Optional, max 1000 karakter               |
+| Dokumen         | 3-10 file, PDF/JPG/JPEG/PNG, max 5MB each |
+
+**Approval:**
+
+| Action  | Validasi                          |
+| ------- | --------------------------------- |
+| Approve | Notes optional                    |
+| Reject  | Notes required (alasan penolakan) |
+
+## Author
+
+**A. Ramdhan Pamuji**  
+Email: [hello@arpamuji.dev](mailto:hello@arpamuji.dev)
 
 Dokumentasi tambahan:
 
