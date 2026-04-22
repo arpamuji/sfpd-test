@@ -47,8 +47,19 @@ class SubmissionController extends Controller
      */
     public function store(StoreSubmissionRequest $request): RedirectResponse
     {
+        \Log::info('Submission store called');
+        \Log::info('Files from request:', ['files' => $request->allFiles()]);
+        \Log::info('Files count:', ['count' => count($request->file('files') ?? [])]);
+
         $validated = $request->validated();
-        $files = $request->file('files');
+        $files = $request->file('files') ?? $request->file('files.0') ?? [];
+
+        // Handle both 'files' and 'files[]' naming
+        if (! is_array($files)) {
+            $files = [$files];
+        }
+
+        \Log::info('Processed files:', ['count' => count($files)]);
 
         $submission = $this->submissionService->createSubmission(
             $validated,
@@ -70,6 +81,9 @@ class SubmissionController extends Controller
      */
     public function show(Submission $submission)
     {
+        // Load relationships for proper serialization
+        $submission->load(['files', 'approvalLogs']);
+
         return Inertia::render('Submissions/Show', [
             'submission' => $submission,
         ]);

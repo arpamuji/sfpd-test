@@ -1,0 +1,10 @@
+import { route as routeFn } from "ziggy-js";
+
+declare global {
+    const route: typeof routeFn;
+    interface Window {
+        route: typeof routeFn;
+    }
+}
+
+export {};
