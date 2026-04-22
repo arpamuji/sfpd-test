@@ -51,12 +51,14 @@ class Submission extends Model
             'budget_estimate' => 'float',
             'submitted_at' => 'datetime',
             'approved_at' => 'datetime',
+            'rejected_by' => 'string',
         ];
     }
 
     protected $appends = [
         'can_approve',
         'can_reject',
+        'rejected_by_user',
     ];
 
     /**
@@ -76,6 +78,19 @@ class Submission extends Model
     {
         return Attribute::make(
             get: fn () => auth()->check() && $this->current_role_id === auth()->user()->role_id
+        );
+    }
+
+    /**
+     * Get the user who rejected this submission.
+     */
+    protected function rejectedByUser(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->relationLoaded('rejectedBy') && $this->rejectedBy ? [
+                'id' => $this->rejectedBy->id,
+                'name' => $this->rejectedBy->name,
+            ] : null,
         );
     }
 

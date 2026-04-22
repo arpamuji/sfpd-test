@@ -12,6 +12,7 @@ class ApprovalLog extends Model
     use HasFactory;
 
     public $incrementing = false;
+
     public $keyType = 'string';
 
     protected static function booted(): void
@@ -28,6 +29,15 @@ class ApprovalLog extends Model
         'approver_id',
         'action',
         'notes',
+    ];
+
+    protected $appends = [
+        'approver_name',
+        'approver_role',
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
     ];
 
     public function submission(): BelongsTo
@@ -48,5 +58,21 @@ class ApprovalLog extends Model
     public function isRejection(): bool
     {
         return $this->action === 'reject';
+    }
+
+    /**
+     * Get the approver's name.
+     */
+    public function getApproverNameAttribute(): ?string
+    {
+        return $this->approver ? $this->approver->name : null;
+    }
+
+    /**
+     * Get the approver's role name.
+     */
+    public function getApproverRoleAttribute(): ?string
+    {
+        return $this->approver && $this->approver->role ? $this->approver->role->name : null;
     }
 }
